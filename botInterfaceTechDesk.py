@@ -3,7 +3,9 @@ import openai
 import ipywidgets as widgets
 from IPython.display import display
 import pyttsx3
+import speech_recognition as sr
 
+r = sr.Recognizer()
 engine= pyttsx3.init()
 
 layout = widgets.Layout(width='auto', height='40px') #set width and height
@@ -41,6 +43,15 @@ disabled=True
 
 updateHistory()
 output = widgets.Output()
+
+talkButton = widgets.Button(
+description='Talk',
+    disabled=False,
+    button_style='info', # 'success', 'info', 'warning', 'danger' or ''
+    tooltip='Speak to the AI using your voice',
+    icon='' # (FontAwesome names without the `fa-` prefix)
+)
+
 submit = widgets.Button(
     description='Send',
     disabled=False,
@@ -82,7 +93,7 @@ temperatureInput.observe(updateTemp, names='value')
 
 
 
-display(historyText,personality,ai,temperatureInput,aiVoiceToggle,human,submit, resetButton)
+display(historyText,personality,ai,temperatureInput,aiVoiceToggle,human,talkButton,submit, resetButton)
 ###########################
 def updateButton(change):
     updateHistory()
@@ -95,8 +106,12 @@ def dropdown_year_eventhandler(change):
     else:
         display(df_london[df_london.year == change.new])
 ###########################
-
-
+def talkButtonAction(btn_object):
+    text = speech()
+    human.value = text
+    ask_question()
+    
+talkButton.on_click(talkButtonAction)
 
 def submitButton(btn_object):
     ask_question()
@@ -119,7 +134,7 @@ def call_api():
     response = openai.Completion.create(
     engine="davinci-v2b",
     prompt = currentHistory,
-    max_tokens=250,
+    max_tokens=100,
     temperature=temperatureInput.value,
     top_p=1,
     n=1,
@@ -133,11 +148,22 @@ def ask_question():
     result = response[0].choices[0].text
     updatedHistory= f"{historyText.value}{response[1]}{result}"
     historyText.value = updatedHistory
-    speak(response[1])
+    #speak(response[1]) --disabled as human user will speak
     speak(result)
     ai.value = result
     human.value = ""
 
+def speech():
+    with sr.Microphone() as source:
+        #print("START SPEAKING!")
+        audio = r.listen(source)
+        #print("RECORDING COMPLETED")
+        try:
+            return r.recognize_google(audio) #captured speech
+        except Exception as ee:
+            pass
+    
+    
 def speak(text_to_say):
     try:
         if aiVoiceToggle.value == True:
