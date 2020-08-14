@@ -4,6 +4,7 @@ import ipywidgets as widgets
 from IPython.display import display
 import pyttsx3
 
+r = sr.Recognizer()
 engine= pyttsx3.init()
 
 layout = widgets.Layout(width='auto', height='40px') #set width and height
@@ -15,31 +16,31 @@ human_start = "Hi"
 conversation_partner = "an AI.The AI is helpful and friendly." #who/what are we going to chat with? 
 history = f"The following is a conversation with {conversation_partner}\n\nHuman:{human_start}\nAI:{ai_start}"
 
-ai = widgets.Text(value=ai_start, disabled=True,description='AI says:', layout = layout)
-human = widgets.Text(value=human_start, disabled=False,description='You say:',layout = layout)
-output = widgets.Output()
-submit = widgets.Button(
+def createInterface():
+    ai = widgets.Text(value=ai_start, disabled=True,description='AI says:', layout = layout)
+    human = widgets.Text(value=human_start, disabled=False,description='You say:',layout = layout)
+    submit = widgets.Button(
     description='Send',
     disabled=False,
     button_style='success', # 'success', 'info', 'warning', 'danger' or ''
     tooltip='Send message',
     icon='meh-blank' # (FontAwesome names without the `fa-` prefix)
-)
-resetButton = widgets.Button(
-description='Reset',
+    )
+    resetButton = widgets.Button(
+    description='Reset',
     disabled=False,
     button_style='danger', # 'success', 'info', 'warning', 'danger' or ''
     tooltip='Restart the chat',
     icon='' # (FontAwesome names without the `fa-` prefix)
-)
+    )
 
-aiVoiceToggle = widgets.Checkbox(
+    aiVoiceToggle = widgets.Checkbox(
     value=False,
     description='AI voice',
     disabled=False
-)
+    )
 
-temperatureInput = widgets.FloatSlider(
+    temperatureInput = widgets.FloatSlider(
     value=0.7,
     min=0,
     max=1.0,
@@ -51,24 +52,25 @@ temperatureInput = widgets.FloatSlider(
     orientation='horizontal',
     readout=True,
     readout_format='.1f',
-)
-def updateTemp(change):
-    temperatureInput.value = change.new
-    
-temperatureInput.observe(updateTemp, names='value')
+    )
 
-historyText = widgets.Textarea(
+    historyText = widgets.Textarea(
     value=history,
     placeholder=history,
     description='History',
     disabled=True
-)
-display(historyText,ai,temperatureInput,aiVoiceToggle,human,submit, resetButton)
+    )
+    display(historyText,ai,temperatureInput,aiVoiceToggle,human,submit, resetButton)
 
+    submit.on_click(submitButton)
+    temperatureInput.observe(updateTemp, names='value')
+    resetButton.on_click(resetChat)
+
+def updateTemp(change):
+    temperatureInput.value = change.new
+    
 def submitButton(btn_object):
     ask_question()
-    
-submit.on_click(submitButton)
 
 def resetChat(resetButton):
     """reset chat to initial state"""
@@ -78,7 +80,6 @@ def resetChat(resetButton):
         historyText.value = history
     except TypeError as te:
         print('line 51',te)
-resetButton.on_click(resetChat)
 
 #functions
 def call_api():
@@ -118,5 +119,5 @@ def speak(text_to_say):
         print(ee)
     
 if __name__ == "__main__":
-    pass
+    createInterface()
     
