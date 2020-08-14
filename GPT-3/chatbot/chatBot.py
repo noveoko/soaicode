@@ -7,6 +7,8 @@ import speech_recognition as sr
 import os
 import time
 from tokenizers import BertWordPieceTokenizer
+import requests
+import richContext
 
 ##initial setup
 tokenizer = BertWordPieceTokenizer("bert-base-uncased-vocab.txt")
@@ -14,32 +16,36 @@ r = sr.Recognizer()
 engine= pyttsx3.init()
 openai.api_key = config.key
 human_start = "Hi"
+newsWeather = richContext.fetchContent()
 speakers = {1:{'name':'AI','type':"The AI is helpful, friendly, and uses professional language and tone. If the AI doesn't know something it will say 'I don't have an answer'.",'cue':'How may I help you?'},
-                 2:{'name':'Detective Monroe','type':'He is a Police Detective with 20 years of experience. The detective is very good and discovering the truth and being persuasive. The detective will never let a guilty person go free.','cue':'Thank you for coming on such short notice.'},
-                 3:{'name':'Attorney Jone Smith','type':'She is a New York defense attorney. The attorney uses verbose and eloquent language blended with legalese. The attorney fights for their clients innocence.','cue':'What seems to be the problem?'},
-                 4:{'name':'Agent 021','type':'The Spy never tells more information than is required. The spy never reveals that they are a spy. The spy will make you think they are very nice and kind.','cue':'[stares off into space]'}}
+            2:{'name':'Detective Monroe','type':'He is a Police Detective with 20 years of experience. The detective is very good and discovering the truth and being persuasive. The detective will never let a guilty person go free.','cue':'Thank you for coming on such short notice.'},
+            3:{'name':'Attorney Jone Smith','type':'She is a New York defense attorney. The attorney uses verbose and eloquent language blended with legalese. The attorney fights for their clients innocence.','cue':'What seems to be the problem?'},
+            4:{'name':'Agent 021','type':'The Spy never tells more information than is required. The spy never reveals that they are a spy. The spy will make you think they are very nice and kind.','cue':'[stares off into space]'},
+            5:{'name':'Plato', 'type':'Plato is very stoic. He is an ancient greek philosopher. He uses British English when speaking.', 'cue':'Good day!'}}
 
 def updateHistory():
     s1 = personality.value
     ai_start = speakers[s1]['cue']
     ai.value = ai_start
     human.value = human_start
-    historyText.value = f"The following is a conversation with {speakers[s1]['name']}. {speakers[s1]['type']}\n\nHuman:{human_start}\n{speakers[s1]['name']}:{ai_start}"
+    globalText = ""
+    if newsWeather:
+        pass
+        #globalText = f"{newsWeather}"
+    historyText.value = f"{globalText}\n\nThe following is a conversation with {speakers[s1]['name']}. {speakers[s1]['type']}\n\nHuman:{human_start}\n{speakers[s1]['name']}:{ai_start}"
      
 def tokenCount(string="no string"):
-    count = 0
     try:
         encoded_output = tokenizer.encode(string)
         tokensUsed.value = len(encoded_output)
-        count = len(encoded_output)
-    except ValueError as ve:
-        pass
-    return count
+        return len(encoded_output)
+    except Exception as ee:
+        print(f"Failure to count tokens on:{string}", ee)
 
 def updateTemp(change):
     temperatureInput.value = change.new
-    
-###########################
+    print("New temp", temperatureInput.value)
+
 def updateButton(change):
     updateHistory()
     
@@ -48,11 +54,11 @@ def dropdown_year_eventhandler(change):
         display(df_london)
     else:
         display(df_london[df_london.year == change.new])
-###########################
+
 def talkButtonAction(btn_object):
     text = speech()
     human.value = text
-    tokenCount(historyText.value)
+    tokenCount(historyText.value['new'])
     ask_question()
 
 def submitButton(btn_object):
@@ -131,7 +137,7 @@ layout = widgets.Layout(width='auto', height='40px') #set width and height
 ai = widgets.Text(value="", disabled=True,description='AI says:', layout = layout)
 human = widgets.Text(value="", disabled=False,description='You say:',layout = layout)
 personality = widgets.Dropdown(
-    options=[('AI', 1), ('Police Detective', 2), ('Defense Attorney', 3), ('Spy',4)],
+    options=[('AI', 1), ('Police Detective', 2), ('Defense Attorney', 3), ('Spy',4), ('Plato', 5)],
     value=1,
     description='Personality:',
 )
@@ -190,12 +196,12 @@ tokensUsed = widgets.FloatProgress(
 )
 
 historyText = widgets.Textarea(
-value="",
+value="Empty",
 placeholder="No history yet.",
 description='History',
 disabled=True
 )
-historyText.observe(tokenCount, names='value')#when history is changed update token count
+#historyText.observe(tokenCount, names='value')#when history is changed update token count
 
 
 temperatureInput.observe(updateTemp, names='value')
