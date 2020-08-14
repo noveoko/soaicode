@@ -29,12 +29,14 @@ def updateHistory():
     historyText.value = f"The following is a conversation with {speakers[s1]['name']}. {speakers[s1]['type']}\n\nHuman:{human_start}\n{speakers[s1]['name']}:{ai_start}"
      
 def tokenCount(string="no string"):
+    count = 0
     try:
         encoded_output = tokenizer.encode(string)
         tokensUsed.value = len(encoded_output)
-        return len(encoded_output)
+        count = len(encoded_output)
     except ValueError as ve:
         pass
+    return count
 
 def updateTemp(change):
     temperatureInput.value = change.new
@@ -52,6 +54,7 @@ def dropdown_year_eventhandler(change):
 def talkButtonAction(btn_object):
     text = speech()
     human.value = text
+    tokenCount(historyText.value)
     ask_question()
 
 def submitButton(btn_object):
@@ -179,7 +182,7 @@ temperatureInput = widgets.FloatSlider(
 )
 
 tokensUsed = widgets.FloatProgress(
-    value=0,
+    value=0.0,
     min=0,
     max=2040,
     step=1,
