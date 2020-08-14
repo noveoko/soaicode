@@ -19,8 +19,6 @@ speakers = {1:{'name':'AI','type':"The AI is helpful, friendly, and uses profess
                  3:{'name':'Attorney Jone Smith','type':'She is a New York defense attorney. The attorney uses verbose and eloquent language blended with legalese. The attorney fights for their clients innocence.','cue':'What seems to be the problem?'},
                  4:{'name':'Agent 021','type':'The Spy never tells more information than is required. The spy never reveals that they are a spy. The spy will make you think they are very nice and kind.','cue':'[stares off into space]'}}
 
-
-
 def updateHistory():
     s1 = personality.value
     ai_start = speakers[s1]['cue']
@@ -77,9 +75,9 @@ def call_api():
     prompt = currentHistory,
     max_tokens=100,
     temperature=temperatureInput.value,
-    top_p=1,
-    frequency_penalty=0.75,
-    presence_penalty=0.50,
+    #top_p=1, #Don't use both this and temp (according to OpenAI docs)
+    frequency_penalty=0.95,
+    presence_penalty=0.75,
     n=1,
     stream = None,
     logprobs=None,
